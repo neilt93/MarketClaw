@@ -122,15 +122,15 @@ export async function POST(request: Request) {
       }),
     );
 
-    for (const r of batchResults) {
+    for (let j = 0; j < batchResults.length; j++) {
+      const r = batchResults[j]!;
       if (r.status === "fulfilled") {
         results.parsed++;
         results.items_found += r.value.items;
         results.resalable_items += r.value.resalable;
       } else {
         results.failed++;
-        // Mark failed receipts
-        const receipt = batch[batchResults.indexOf(r)];
+        const receipt = batch[j];
         if (receipt) {
           await supabase
             .from("receipts")

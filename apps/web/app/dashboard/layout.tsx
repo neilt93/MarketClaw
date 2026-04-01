@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { NavLinks } from "@/components/nav-links";
 
 export default async function DashboardLayout({
   children,
@@ -16,14 +17,6 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const navItems = [
-    { href: "/dashboard", label: "Overview" },
-    { href: "/dashboard/receipts", label: "Receipts" },
-    { href: "/dashboard/listings", label: "Listings" },
-    { href: "/dashboard/offers", label: "Offers" },
-    { href: "/dashboard/settings", label: "Settings" },
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="border-b bg-white">
@@ -32,15 +25,7 @@ export default async function DashboardLayout({
             Declutter
           </Link>
           <div className="flex items-center gap-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-sm text-gray-600 hover:text-gray-900"
-              >
-                {item.label}
-              </Link>
-            ))}
+            <NavLinks />
             <span className="text-sm text-gray-400">{user.email}</span>
           </div>
         </div>

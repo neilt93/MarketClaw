@@ -1,9 +1,9 @@
 import { AuthForm } from "@/components/auth-form";
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <AuthForm mode="login" />
+      <AuthForm mode="signup" />
     </main>
   );
 }

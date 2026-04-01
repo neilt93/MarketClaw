@@ -1,5 +1,4 @@
 // eBay Browse API integration for price comparisons
-// TODO: Implement in Week 3
 
 const EBAY_TOKEN_URL = "https://api.ebay.com/identity/v1/oauth2/token";
 const EBAY_SEARCH_URL =

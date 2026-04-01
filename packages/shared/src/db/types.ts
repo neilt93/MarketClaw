@@ -1,6 +1,3 @@
-// Auto-generated types will go here via `supabase gen types typescript`
-// For now, define the core types manually to unblock development.
-
 export interface User {
   id: string;
   email: string;
@@ -9,6 +6,9 @@ export interface User {
   gmail_connected: boolean;
   gmail_refresh_token: string | null;
   gmail_last_sync: string | null;
+  stripe_customer_id: string | null;
+  stripe_connect_id: string | null;
+  stripe_connect_onboarded: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -36,7 +36,7 @@ export interface Item {
   brand: string | null;
   model_number: string | null;
   category: string;
-  purchase_price: number | null; // cents
+  purchase_price: number | null;
   quantity: number;
   purchase_date: string | null;
   retailer: string | null;
@@ -53,11 +53,12 @@ export interface Listing {
   description: string;
   category: string | null;
   condition: string;
-  asking_price: number; // cents
+  asking_price: number;
   currency: string;
   image_urls: string[] | null;
   ebay_avg_price: number | null;
-  ebay_comps: Record<string, unknown> | null;
+  ebay_comp_count: number | null;
+  ebay_comps: Record<string, unknown>[] | null;
   embedding: number[] | null;
   status: "draft" | "active" | "sold" | "expired" | "withdrawn";
   published_at: string | null;
@@ -71,11 +72,13 @@ export interface Offer {
   seller_id: string;
   buyer_name: string | null;
   buyer_email: string;
-  amount: number; // cents
+  amount: number;
   message: string | null;
   status: "pending" | "accepted" | "rejected" | "expired" | "withdrawn";
   responded_at: string | null;
   seller_message: string | null;
+  payment_intent_id: string | null;
+  payment_status: "none" | "pending" | "paid" | "refunded" | null;
   expires_at: string;
   created_at: string;
   updated_at: string;
@@ -87,7 +90,7 @@ export interface AffiliateClick {
   amazon_asin: string;
   amazon_url: string;
   amazon_title: string | null;
-  amazon_price: number | null; // cents
+  amazon_price: number | null;
   agent_id: string | null;
   clicked_at: string;
 }
