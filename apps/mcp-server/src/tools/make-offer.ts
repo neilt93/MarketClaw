@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { supabase } from "../lib/supabase.js";
+import { sendOfferNotification } from "../lib/email.js";
+import { formatPrice } from "@declutter/shared";
 
 export const makeOfferSchema = {
   listing_id: z.string().uuid().describe("The listing UUID to make an offer on"),
@@ -77,13 +79,31 @@ export async function makeOffer({
     };
   }
 
-  // TODO: Send email notification to seller about new offer
+  // Send email notification to seller
+  const { data: seller } = await supabase
+    .from("users")
+    .select("email, full_name")
+    .eq("id", listing.user_id)
+    .single();
+
+  if (seller) {
+    await sendOfferNotification({
+      sellerEmail: seller.email,
+      sellerName: seller.full_name ?? "there",
+      listingTitle: listing.title,
+      offerAmount: formatPrice(amountCents),
+      buyerName: buyer_name ?? null,
+      buyerEmail: buyer_email,
+      message: message ?? null,
+      offerId: offer.id,
+    });
+  }
 
   return {
     content: [
       {
         type: "text" as const,
-        text: `Offer submitted successfully!\n\nOffer ID: ${offer.id}\nListing: ${listing.title}\nYour offer: $${amount_dollars.toFixed(2)} (asking: $${(listing.asking_price / 100).toFixed(2)})\nStatus: ${offer.status}\nExpires: ${offer.expires_at}\n\nThe seller will be notified. You'll receive a response at ${buyer_email}.`,
+        text: `Offer submitted successfully!\n\nOffer ID: ${offer.id}\nListing: ${listing.title}\nYour offer: $${amount_dollars.toFixed(2)} (asking: $${(listing.asking_price / 100).toFixed(2)})\nStatus: ${offer.status}\nExpires: ${offer.expires_at}\n\nThe seller has been notified via email. You'll receive a response at ${buyer_email}.`,
       },
     ],
   };

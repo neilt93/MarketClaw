@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice, CATEGORY_LABELS } from "@declutter/shared";
 
@@ -17,6 +18,7 @@ interface DraftListing {
 export default function ReviewPage() {
   const [drafts, setDrafts] = useState<DraftListing[]>([]);
   const [approving, setApproving] = useState(false);
+  const router = useRouter();
 
   const supabase = createClient();
 
@@ -122,8 +124,16 @@ export default function ReviewPage() {
                 Approve
               </button>
               <button
-                onClick={() => handleSkip(draft.id)}
+                onClick={() =>
+                  router.push(`/dashboard/listings/${draft.id}/edit`)
+                }
                 className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleSkip(draft.id)}
+                className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
               >
                 Skip
               </button>

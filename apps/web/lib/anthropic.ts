@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { type ReceiptExtraction, receiptExtractionSchema } from "@declutter/shared";
+import { type ReceiptExtraction, receiptExtractionSchema, formatPrice } from "@declutter/shared";
 import type { ParsedEmail } from "./gmail";
 
 const anthropic = new Anthropic();
@@ -154,4 +154,115 @@ ${email.text}`;
   }
 
   return null;
+}
+
+// --- Listing Generation ---
+
+const LISTING_SYSTEM_PROMPT = `You are a marketplace listing copywriter. Given item details and pricing data, generate a compelling resale listing.
+
+Rules:
+1. Title: max 80 characters. Include brand, model, and key spec. Capitalize key words, no filler.
+2. Description: 2-3 short paragraphs. Mention original retail context, key features, and a condition disclaimer based on age.
+3. For condition, infer from age and category:
+   - Items < 6 months old: "like_new"
+   - Items 6-18 months: "very_good"
+   - Items 18-36 months: "good"
+   - Items > 36 months: "acceptable"
+4. Never fabricate specs not present in the input data.
+5. Include a brief "What's included" note if relevant (e.g., "Original packaging not guaranteed").
+6. Keep the tone friendly and honest — no hype or fake urgency.`;
+
+export interface ListingGenerationInput {
+  itemName: string;
+  brand: string | null;
+  model: string | null;
+  category: string;
+  purchasePriceCents: number | null;
+  purchaseDate: string | null;
+  retailer: string | null;
+  suggestedPriceCents: number;
+  ebayMedianCents: number | null;
+  ebayCompCount: number;
+}
+
+export interface GeneratedListing {
+  title: string;
+  description: string;
+  condition: string;
+}
+
+export async function generateListingCopy(
+  input: ListingGenerationInput,
+): Promise<GeneratedListing> {
+  const userMessage = `Generate a resale listing for this item:
+
+Item: ${input.itemName}
+Brand: ${input.brand ?? "Unknown"}
+Model: ${input.model ?? "N/A"}
+Category: ${input.category}
+Original price: ${input.purchasePriceCents ? formatPrice(input.purchasePriceCents) : "Unknown"}
+Purchase date: ${input.purchaseDate ?? "Unknown"}
+Retailer: ${input.retailer ?? "Unknown"}
+Suggested resale price: ${formatPrice(input.suggestedPriceCents)}
+eBay comparable median: ${input.ebayMedianCents ? formatPrice(input.ebayMedianCents) : "No data"} (${input.ebayCompCount} active listings found)
+
+Respond with exactly this JSON format:
+{"title": "...", "description": "...", "condition": "like_new|very_good|good|acceptable"}`;
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const response = await anthropic.messages.create({
+        model: "claude-sonnet-4-5-20250514",
+        max_tokens: 1024,
+        system: LISTING_SYSTEM_PROMPT,
+        messages: [{ role: "user", content: userMessage }],
+      });
+
+      const textBlock = response.content.find((b) => b.type === "text");
+      if (!textBlock || textBlock.type !== "text") {
+        throw new Error("No text in response");
+      }
+
+      // Extract JSON from response (handles markdown code blocks too)
+      let jsonStr = textBlock.text;
+      const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+      if (jsonMatch) jsonStr = jsonMatch[0];
+
+      const parsed = JSON.parse(jsonStr);
+
+      return {
+        title: String(parsed.title).slice(0, 200),
+        description: String(parsed.description),
+        condition: ["like_new", "very_good", "good", "acceptable"].includes(
+          parsed.condition,
+        )
+          ? parsed.condition
+          : "good",
+      };
+    } catch (err: unknown) {
+      const status = (err as { status?: number }).status;
+      if (status === 429 || status === 529) {
+        await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000));
+        continue;
+      }
+      if (attempt === 2) {
+        // Fallback: generate a basic listing ourselves
+        return {
+          title: [input.brand, input.model, input.itemName]
+            .filter(Boolean)
+            .join(" ")
+            .slice(0, 80),
+          description: `${input.itemName} originally purchased${input.retailer ? ` from ${input.retailer}` : ""}${input.purchaseDate ? ` on ${input.purchaseDate}` : ""}. In good condition and ready for a new home.`,
+          condition: "good",
+        };
+      }
+    }
+  }
+
+  // Should not reach here, but fallback
+  return {
+    title: input.itemName.slice(0, 80),
+    description: input.itemName,
+    condition: "good",
+  };
 }
