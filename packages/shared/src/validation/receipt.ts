@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ItemCategory } from "../db/enums.js";
+import { ItemCategory } from "../db/enums";
 
 const itemCategoryValues = Object.values(ItemCategory) as [string, ...string[]];
 

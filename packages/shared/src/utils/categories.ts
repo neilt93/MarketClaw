@@ -1,4 +1,4 @@
-import { ItemCategory } from "../db/enums.js";
+import { ItemCategory } from "../db/enums";
 
 export const RESALABLE_CATEGORIES = new Set<string>([
   ItemCategory.ELECTRONICS,

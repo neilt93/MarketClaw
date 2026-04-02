@@ -1,4 +1,4 @@
-import { ItemCategory } from "../db/enums.js";
+import { ItemCategory } from "../db/enums";
 
 /** Annual depreciation rates by category (fraction per year) */
 const DEPRECIATION_RATES: Record<string, number> = {
