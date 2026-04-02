@@ -6,7 +6,7 @@ export type {
   Listing,
   Offer,
   AffiliateClick,
-} from "./db/types.js";
+} from "./db/types";
 
 // Enums
 export {
@@ -17,7 +17,7 @@ export {
   ListingCondition,
   ItemCategory,
   ExtractionConfidence,
-} from "./db/enums.js";
+} from "./db/enums";
 
 // Validation schemas
 export {
@@ -25,30 +25,30 @@ export {
   receiptExtractionSchema,
   type ExtractedItem,
   type ReceiptExtraction,
-} from "./validation/receipt.js";
+} from "./validation/receipt";
 export {
   createListingSchema,
   updateListingSchema,
   approveListingsSchema,
   type CreateListingInput,
   type UpdateListingInput,
-} from "./validation/listing.js";
+} from "./validation/listing";
 export {
   createOfferSchema,
   respondOfferSchema,
   type CreateOfferInput,
   type RespondOfferInput,
-} from "./validation/offer.js";
+} from "./validation/offer";
 
 // Utils
 export {
   calculateDepreciatedValue,
   suggestPrice,
   formatPrice,
-} from "./utils/pricing.js";
+} from "./utils/pricing";
 export {
   RESALABLE_CATEGORIES,
   NON_RESALABLE_CATEGORIES,
   isResalable,
   CATEGORY_LABELS,
-} from "./utils/categories.js";
+} from "./utils/categories";
