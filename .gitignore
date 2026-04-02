@@ -29,3 +29,4 @@ pnpm-debug.log*
 # supabase
 supabase/.temp
 *.tsbuildinfo
+apps/web/next-env.d.ts
